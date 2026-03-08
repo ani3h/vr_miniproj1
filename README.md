@@ -2,23 +2,6 @@
 
 A visual recognition system for multi-label clothing classification, detection, and instance segmentation on the DeepFashion2 dataset.
 
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Dataset](#dataset)
-- [Project Structure](#project-structure)
-- [Setup](#setup)
-- [Preprocessing](#preprocessing)
-- [Task 3.1 — Classification](#task-31--classification)
-- [Task 3.2 — Detection & Segmentation](#task-32--detection--segmentation)
-- [Evaluation Metrics](#evaluation-metrics)
-- [Results](#results)
-- [Model Release (Hugging Face)](#model-release-hugging-face)
-
----
-
 ## Overview
 
 This project builds a multi-task visual recognition pipeline for apparel images, addressing three core problems:
