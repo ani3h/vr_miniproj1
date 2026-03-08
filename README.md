@@ -53,13 +53,13 @@ project/
 │   ├── test.json
 │   └── label_map.json
 ├── classification/
-│   ├── resnet50.py               # ResNet-50 (scratch + transfer)
-│   ├── efficientnet.py           # EfficientNet-B0 (scratch + transfer)
-│   └── mobilenet.py              # MobileNetV3 (scratch + transfer)
+│   ├── resnet50.ipynb               # ResNet-50 (scratch + transfer)
+│   ├── efficientnet.ipynb           # EfficientNet-B0 (scratch + transfer)
+│   └── mobilenet.ipynb              # MobileNetV3 (scratch + transfer)
 └── detection/
-    ├── yolo.py                   # YOLOv8 (detection + segmentation)
-    ├── maskrcnn.py               # Mask R-CNN with ResNet-50 + FPN
-    └── unet.py                   # U-Net with connected component post-processing
+    ├── yolo.ipynb                   # YOLOv8 (detection + segmentation)
+    ├── maskrcnn.ipynb               # Mask R-CNN with ResNet-50 + FPN
+    └── unet.ipynb                   # U-Net with connected component post-processing
 ```
 
 ---
