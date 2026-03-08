@@ -7,3 +7,4 @@ venv/
 *.ckpt
 data/
 .vscode
+.DS_Store
