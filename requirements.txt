@@ -1,0 +1,30 @@
+# Core
+numpy>=1.24.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+matplotlib>=3.7.0
+scikit-learn>=1.3.0
+tqdm>=4.65.0
+
+# Deep Learning — PyTorch
+torch>=2.1.0
+torchvision>=0.16.0
+
+# Classification Models
+timm>=0.9.0                  # EfficientNet-B0 alternate / extra pretrained weights
+
+# Detection & Segmentation
+ultralytics>=8.0.0           # YOLOv8
+pycocotools>=2.0.7           # COCO metrics (mAP), Mask R-CNN annotations
+
+# U-Net
+segmentation-models-pytorch>=0.3.3   # U-Net with pretrained encoders (e.g. ResNet-34)
+
+# Evaluation & Metrics
+scikit-learn>=1.3.0          # F1, precision, recall, ROC/AUC
+torchmetrics>=1.2.0          # mIoU, Dice, mAP helpers
+
+# Utilities
+albumentations>=1.3.1        # Data augmentation
+pandas>=2.0.0
+scipy>=1.11.0                # Connected component analysis (U-Net post-processing)

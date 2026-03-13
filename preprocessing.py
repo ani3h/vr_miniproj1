@@ -201,3 +201,15 @@ for split in splits:
 
 
 print("\nPreprocessing completed successfully.")
+
+# Save label_map so preprocessing_detection.py can read the exact same top-5
+label_map_out = {
+    "top5_original_ids": top5,
+    "label_map":         {str(k): v for k, v in label_map.items()},
+    "category_names":    {str(c): str(c) for c in top5},
+    "num_classes":       NUM_CLASSES,
+}
+with open(os.path.join(OUTPUT_DIR, "label_map.json"), "w") as f:
+    json.dump(label_map_out, f, indent=2)
+
+print("label_map.json saved.")

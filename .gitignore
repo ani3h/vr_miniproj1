@@ -6,5 +6,6 @@ venv/
 *.pth
 *.ckpt
 data/
+processed_dataset/
 .vscode
 .DS_Store
