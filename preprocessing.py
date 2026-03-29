@@ -4,22 +4,24 @@ import random
 from collections import defaultdict, Counter
 from sklearn.model_selection import train_test_split
 
-TRAIN_IMAGE_DIR = "data/train/image"
-TRAIN_ANN_DIR = "data/train/annos"
+BASE = "/kaggle/input/datasets/ani3hhh/vr-dataset/data"   # adjust slug if needed
 
-VAL_IMAGE_DIR = "data/validation/image"
-VAL_ANN_DIR = "data/validation/annos"
+TRAIN_IMAGE_DIR = f"{BASE}/train/image"
+TRAIN_ANN_DIR   = f"{BASE}/train/annos"
 
-TEST_IMAGE_DIR = "data/test/test"
-TEST_ANN_DIR = "data/test/json_for_test"
+VAL_IMAGE_DIR   = f"{BASE}/validation/image"
+VAL_ANN_DIR     = f"{BASE}/validation/annos"
+
+TEST_IMAGE_DIR  = f"{BASE}/test/test"
+TEST_ANN_DIR    = f"{BASE}/json_for_validation"   # only annotations available for test
 
 DATA_SPLITS = [
     (TRAIN_IMAGE_DIR, TRAIN_ANN_DIR),
-    (VAL_IMAGE_DIR, VAL_ANN_DIR),
-    (TEST_IMAGE_DIR, TEST_ANN_DIR)
+    (VAL_IMAGE_DIR,   VAL_ANN_DIR),
+    (TEST_IMAGE_DIR,  TEST_ANN_DIR),
 ]
 
-OUTPUT_DIR = "processed_dataset"
+OUTPUT_DIR = "/kaggle/working/processed_dataset"
 TARGET_RATIO = 0.6
 
 random.seed(42)
@@ -27,43 +29,76 @@ random.seed(42)
 # Count category frequencies
 category_counter = Counter()
 image_to_categories = {}
+category_id_to_name = {}
 
+
+from concurrent.futures import ThreadPoolExecutor
 print("Scanning dataset annotations...")
 
-for IMAGE_DIR, ANN_DIR in DATA_SPLITS:
+def process_annotation(args):
 
-    for ann_file in os.listdir(ANN_DIR):
+    IMAGE_DIR, ANN_DIR, ann_file = args
 
-        if not ann_file.endswith(".json"):
-            continue
+    if not ann_file.endswith(".json"):
+        return None
 
-        ann_path = os.path.join(ANN_DIR, ann_file)
+    ann_path = os.path.join(ANN_DIR, ann_file)
 
+    try:
         with open(ann_path) as f:
             data = json.load(f)
+    except:
+        return None
 
-        cats = set()
+    if not isinstance(data, dict):
+        return None
 
-        for key in data:
+    cats = set()
+    local_names = {}
 
-            if key.startswith("item"):
+    for key, val in data.items():
 
-                cat = data[key]["category_id"]
-                cats.add(cat)
+        if key.startswith("item") and isinstance(val, dict) and "category_id" in val:
 
-        if len(cats) == 0:
-            continue
+            cat = val["category_id"]
+            cats.add(cat)
 
-        image_name = ann_file.replace(".json", ".jpg")
-        image_path = os.path.abspath(os.path.join(IMAGE_DIR, image_name))
+            if "category_name" in val:
+                local_names[cat] = val["category_name"]
 
-        if not os.path.exists(image_path):
-            continue
+    if len(cats) == 0:
+        return None
 
-        image_to_categories[image_path] = list(cats)
+    image_name = ann_file.replace(".json", ".jpg")
+    image_path = os.path.abspath(os.path.join(IMAGE_DIR, image_name))
 
-        for c in cats:
-            category_counter[c] += 1
+    if not os.path.exists(image_path):
+        return None
+
+    return image_path, cats, local_names
+
+tasks = []
+
+for IMAGE_DIR, ANN_DIR in DATA_SPLITS:
+    for ann_file in os.listdir(ANN_DIR):
+        tasks.append((IMAGE_DIR, ANN_DIR, ann_file))
+
+with ThreadPoolExecutor(max_workers=8) as executor:
+    results = list(executor.map(process_annotation, tasks))
+
+for r in results:
+
+    if r is None:
+        continue
+
+    image_path, cats, local_names = r
+
+    image_to_categories[image_path] = list(cats)
+
+    for c in cats:
+        category_counter[c] += 1
+
+    category_id_to_name.update(local_names)
 
 
 print("\nCategory frequencies:")
@@ -126,24 +161,26 @@ for sample in dataset:
 subset = []
 seen = set()
 
-for cls in class_buckets:
+target_per_class = target_size // NUM_CLASSES
 
-    random.shuffle(class_buckets[cls])
+for cls in range(NUM_CLASSES):
 
-    target_per_class = target_size // NUM_CLASSES
-    count = 0
+    candidates = class_buckets[cls]
+    random.shuffle(candidates)
 
-    for sample in class_buckets[cls]:
+    selected = 0
 
-        if sample["image"] not in seen:
+    for sample in candidates:
 
-            subset.append(sample)
-            seen.add(sample["image"])
-            count += 1
+        if sample["image"] in seen:
+            continue
 
-        if count >= target_per_class:
+        subset.append(sample)
+        seen.add(sample["image"])
+        selected += 1
+
+        if selected >= target_per_class:
             break
-
 
 print("Subset size:", len(subset))
 
@@ -188,7 +225,7 @@ for split in splits:
     for img, lbl in zip(imgs, lbls):
 
         data.append({
-            "image": img,
+            "image": os.path.relpath(img, start=BASE),
             "labels": lbl
         })
 
@@ -203,13 +240,22 @@ for split in splits:
 print("\nPreprocessing completed successfully.")
 
 # Save label_map so preprocessing_detection.py can read the exact same top-5
-label_map_out = {
-    "top5_original_ids": top5,
-    "label_map":         {str(k): v for k, v in label_map.items()},
-    "category_names":    {str(c): str(c) for c in top5},
-    "num_classes":       NUM_CLASSES,
+# Create required format: class_name -> index
+# Required class order from assignment
+label_map_json = {
+    "short sleeve top": 0,
+    "trousers": 1,
+    "shorts": 2,
+    "long sleeve top": 3,
+    "skirt": 4
 }
-with open(os.path.join(OUTPUT_DIR, "label_map.json"), "w") as f:
-    json.dump(label_map_out, f, indent=2)
 
-print("label_map.json saved.")
+print("\nFinal Label Mapping (class_name -> index):")
+for name, idx in label_map_json.items():
+    print(f"{name} : {idx}")
+
+# Save label_map.json
+with open(os.path.join(OUTPUT_DIR, "label_map.json"), "w") as f:
+    json.dump(label_map_json, f, indent=4)
+
+print("\nlabel_map.json saved in required format.")

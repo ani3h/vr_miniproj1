@@ -13,16 +13,18 @@ from PIL import Image, ImageDraw
 CLASSIFICATION_OUTPUT_DIR = "processed_dataset"
 OUTPUT_DIR = "processed_dataset"
 
-TRAIN_ANN_DIR = "data/train/annos"
-VAL_ANN_DIR = "data/validation/annos"
-TEST_ANN_DIR = "data/test/json_for_test"
+BASE = "/kaggle/input/datasets/ani3hhh/vr-dataset/data"
+
+TRAIN_ANN_DIR = f"{BASE}/train/annos"
+VAL_ANN_DIR   = f"{BASE}/validation/annos"
+TEST_ANN_DIR  = f"{BASE}/json_for_validation"
 
 ALL_ANN_DIRS = [TRAIN_ANN_DIR, VAL_ANN_DIR, TEST_ANN_DIR]
 
 ALL_IMAGE_DIRS = [
-    "data/train/image",
-    "data/validation/image",
-    "data/test/test",
+    f"{BASE}/train/image",
+    f"{BASE}/validation/image",
+    f"{BASE}/test/test",
 ]
 
 CATEGORY_NAMES = {
@@ -54,11 +56,24 @@ if not os.path.exists(label_map_path):
     )
 
 with open(label_map_path) as f:
-    meta = json.load(f)
+    label_map_json = json.load(f)
 
-top5 = meta["top5_original_ids"]
-label_map = {int(k): int(v) for k, v in meta["label_map"].items()}
-NUM_CLASSES = meta["num_classes"]
+# class_name -> index
+class_name_to_idx = label_map_json
+
+# reconstruct: original category_id -> index
+label_map = {}
+top5 = []
+
+for orig_id, name in CATEGORY_NAMES.items():
+    readable_name = name.replace("_", " ")
+    
+    if readable_name in class_name_to_idx:
+        idx = class_name_to_idx[readable_name]
+        label_map[orig_id] = idx
+        top5.append(orig_id)
+
+NUM_CLASSES = len(label_map)
 
 print("Loaded label_map from classification output.")
 print(f"  Top-5 categories : {top5}")
@@ -373,7 +388,10 @@ def save_yolo(split_map_local):
         print(
             f"  [YOLO {split_name}] {count} images written, {skipped} skipped -> {img_out}")
 
-    class_names = [CATEGORY_NAMES.get(c, str(c)) for c in top5]
+        class_names = [
+        CATEGORY_NAMES.get(c, str(c)).replace("_", " ")
+        for c in top5
+        ]
     yaml_content = "\n".join([
         f"path: {os.path.abspath(yolo_root)}",
         "train: images/train",
