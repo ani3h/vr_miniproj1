@@ -1,6 +1,6 @@
 # Multi-Object Apparel Detection and Instance Segmentation
 
-A visual recognition system for multi-label clothing classification, detection, and instance segmentation on the DeepFashion2 dataset.
+A visual recognition system for multi-label clothing classification, detection, and instance segmentation on the DeepFashion2 dataset. Done as part of AID-825 Visual Recognition Course.
 
 ## Overview
 
@@ -67,8 +67,8 @@ project/
 ## Setup
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/ani3h/vr_miniproj1.git
+cd vr_miniproj1
 pip install -r requirements.txt
 ```
 ---
@@ -189,27 +189,21 @@ After generating semantic segmentation maps, instance-level results are extracte
 
 ### Classification
 
-| Model | Strategy | Micro F1 | Macro F1 | AUC (avg) |
-|-------|----------|----------|----------|-----------|
-| ResNet-50 | Scratch | — | — | — |
-| ResNet-50 | Transfer | — | — | — |
-| EfficientNet-B0 | Scratch | — | — | — |
-| EfficientNet-B0 | Transfer | — | — | — |
-| MobileNetV3 | Scratch | — | — | — |
-| MobileNetV3 | Transfer | — | — | — |
+| Model           | Strategy | Micro F1 | Macro F1 | AUC (avg) |
+| --------------- | -------- | -------- | -------- | --------- |
+| ResNet-50       | Scratch  | 0.6232   | 0.5832   | 0.8865    |
+| ResNet-50       | Transfer | 0.8432   | 0.8402   | 0.9312    |
+| EfficientNet-B0 | Scratch  | 0.7106   | 0.7066   | 0.9085    |
+| EfficientNet-B0 | Transfer | 0.7848   | 0.7833   | 0.9365    |
+| MobileNetV3     | Scratch  | 0.7813   | 0.7806   | 0.9150    |
+| MobileNetV3     | Transfer | 0.7826   | 0.7809   | 0.8983    |
 
 ### Detection & Segmentation
 
-| Model | mAP@[0.5:0.95] | mIoU | Dice |
-|-------|----------------|------|------|
-| YOLOv8 | — | — | — |
-| Mask R-CNN | — | — | — |
-| U-Net | — | — | — |
+| Model                 | mAP@[0.5:0.95] | mIoU  | Dice  |
+| --------------------- | -------------- | ----- | ----- |
+| YOLOv8 (Transfer)     | 0.417          | 0.654 | 0.773 |
+| Mask R-CNN (Transfer) | 0.524          | 0.517 | 0.577 |
+| U-Net (Transfer)      | 0.103          | 0.622 | 0.743 |
 
-> Results will be populated after training runs are complete.
-
----
-
-## Compute
-
-All experiments are designed to run on **Kaggle** or **Google Colab** (single GPU). Large models exceeding 7B parameters are explicitly excluded per project constraints.
+~ IMT2023002, IMT2023536, IMT2023576, IMT2023584
